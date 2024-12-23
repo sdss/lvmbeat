@@ -1,12 +1,14 @@
 FROM ghcr.io/astral-sh/uv:0.5.11-python3.13-bookworm-slim
 
-LABEL org.opencontainers.image.authors "Jose Sanchez-Gallego, gallegoj@uw.edu"
-LABEL org.opencontainers.image.source https://github.com/sdss/lvmbeat
+LABEL org.opencontainers.image.authors="Jose Sanchez-Gallego, gallegoj@uw.edu"
+LABEL org.opencontainers.image.source=https://github.com/sdss/lvmbeat
 
 WORKDIR /app
 
-ENV UV_COMPILE_BYTECODE 1
-ENV ENV UV_LINK_MODE copy
+ENV UV_COMPILE_BYTECODE=1
+ENV ENV UV_LINK_MODE=copy
+
+RUN apt-get update && apt-get install -y git
 
 # Copy the project into the image
 ADD . /app
