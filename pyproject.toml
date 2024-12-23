@@ -38,6 +38,9 @@ dev = [
 package = true
 default-groups = ["dev"]
 
+[tool.uv.sources]
+lvmopstools = { git = "https://github.com/sdss/lvmopstools.git", branch = "main" }
+
 [tool.ruff]
 line-length = 88
 target-version = 'py312'

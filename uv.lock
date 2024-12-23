@@ -545,7 +545,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", extras = ["standard"], marker = "extra == 'lco-monitor'", specifier = ">=0.115.6" },
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "lvmopstools", extras = ["slack"], specifier = ">=0.5.1" },
+    { name = "lvmopstools", extras = ["slack"], git = "https://github.com/sdss/lvmopstools.git?branch=main" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "python3-nmap", specifier = ">=1.9.1" },
     { name = "sdss-clu", specifier = ">=2.4.0" },
@@ -567,8 +567,8 @@ dev = [
 
 [[package]]
 name = "lvmopstools"
-version = "0.5.1"
-source = { registry = "https://pypi.org/simple" }
+version = "0.5.2a0"
+source = { git = "https://github.com/sdss/lvmopstools.git?branch=main#bc67f973df15c28acdaf45e6d6e788836235d777" }
 dependencies = [
     { name = "aio-pika" },
     { name = "aiohttp" },
@@ -582,10 +582,6 @@ dependencies = [
     { name = "sdsstools" },
     { name = "strenum" },
     { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1d/ff/0353990c4553b96ce2d1485bce6f39cbf60134ba1a2995c5fd10c96a1b2e/lvmopstools-0.5.1.tar.gz", hash = "sha256:f7f079282e0a2caff3c9e00dd6435cafe4dc97b6bc140e1b4a38996c967c64b3", size = 130437 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/f2/ddaa1aeaab3ee1dcfbb8a8f0b797478c31da564bcf968af21cf3b5e74282/lvmopstools-0.5.1-py3-none-any.whl", hash = "sha256:ba38889a6a482a807f999316b8f200ed50a8bee1ee8f1bdbb98e6a489c40a55e", size = 138496 },
 ]
 
 [package.optional-dependencies]
