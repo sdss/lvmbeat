@@ -16,4 +16,4 @@ RUN uv sync --frozen --no-cache --extra lco-monitor
 
 EXPOSE 80
 
-CMD ["/app/.venv/bin/fastapi", "run", "src/lvmbeat/monitor.py", "--port", "8111", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/fastapi", "run", "src/lvmbeat/monitor.py", "--port", "80", "--host", "0.0.0.0"]
