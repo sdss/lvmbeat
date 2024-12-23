@@ -14,6 +14,6 @@ ADD . /app
 # Sync the project
 RUN uv sync --frozen --no-cache --extra lco-monitor
 
-EXPOSE 8111
+EXPOSE 80
 
 CMD ["/app/.venv/bin/fastapi", "run", "src/lvmbeat/monitor.py", "--port", "8111", "--host", "0.0.0.0"]
