@@ -1,0 +1,81 @@
+[project]
+name = "lvmbeat"
+version = "0.1.0a0"
+description = "LVM heartbeat monitor"
+readme = "README.md"
+authors = [
+    { name = "José Sánchez-Gallego", email = "gallegoj@uw.edu" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "lvmopstools[slack]>=0.5.1",
+    "pydantic>=2.10.4",
+    "python3-nmap>=1.9.1",
+    "sdss-clu>=2.4.0",
+    "sdsstools>=1.9.0"
+]
+
+[project.optional-dependencies]
+lco-monitor = [
+    "fastapi[standard]>=0.115.6",
+]
+
+[dependency-groups]
+dev = [
+    "ipython>=8.31.0",
+    "ipdb>=0.12.3",
+    "ruff>=0.5.0"
+]
+
+[tool.uv]
+package = true
+default-groups = ["dev"]
+
+[tool.ruff]
+line-length = 88
+target-version = 'py312'
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+unfixable = ["F841"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F403", "E402", "F401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lvmbeat"]
+lines-after-imports = 2
+section-order = ["future", "standard-library", "typing", "third-party", "sdss", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+typing = ["typing"]
+sdss = ["sdsstools", "clu"]
+
+[tool.pytest.ini_options]
+addopts = "--cov lvmbeat --cov-report xml --cov-report html --cov-report term -W ignore"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+branch = true
+include = ["src/lvmbeat/*"]
+omit = [
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "# pragma: no cover"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/lvmbeat"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lvmbeat"]
