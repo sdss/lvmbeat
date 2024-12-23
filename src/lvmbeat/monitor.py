@@ -93,6 +93,7 @@ async def route_get_email_test(
 
     send_critical_error_email(
         "This is a test message. Please ignore.",
+        subject="TEST: LCO internet is down",
         recipients=email_settings.recipients,
         from_address=email_settings.from_address,
         email_reply_to=email_settings.email_reply_to,
