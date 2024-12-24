@@ -13,8 +13,8 @@ on:
       - main
 
 jobs:
-  docker:
-    name: Docker
+  docker-monitor:
+    name: Build monitor app container
 
     runs-on: ubuntu-24.04
 
