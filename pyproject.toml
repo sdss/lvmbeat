@@ -9,17 +9,22 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
-    "lvmopstools[slack]>=0.5.1",
+    "lvmopstools[slack]>=0.5.2",
     "pydantic>=2.10.4",
     "python3-nmap>=1.9.1",
-    "sdss-clu>=2.4.0",
-    "sdsstools>=1.9.0"
+    "sdss-clu>=2.4.2",
+    "sdsstools>=1.9.0",
 ]
 
 [project.optional-dependencies]
 lco-monitor = [
     "fastapi[standard]>=0.115.6",
+    "fastapi-utils>=0.8.0",
+    "typing-inspect>=0.9.0"
 ]
+
+[project.scripts]
+lvmbeat = "lvmbeat.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -37,9 +42,6 @@ dev = [
 [tool.uv]
 package = true
 default-groups = ["dev"]
-
-[tool.uv.sources]
-lvmopstools = { git = "https://github.com/sdss/lvmopstools.git", branch = "main" }
 
 [tool.ruff]
 line-length = 88

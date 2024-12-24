@@ -1,0 +1,11 @@
+actor:
+  name: lvmbeat
+  host: localhost
+  port: 5672
+  log_dir: /data/logs/lvmbeat
+
+outside_monitor_url: null
+
+heartbeats:
+  - name: overwatcher
+    critical: true

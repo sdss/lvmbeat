@@ -8,13 +8,23 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import time
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 
-from typing import Annotated
-
-from fastapi import Depends, FastAPI, HTTPException
+import fastapi_utils
+import fastapi_utils.tasks
+from fastapi import FastAPI, HTTPException
+from fastapi.datastructures import State
 from lvmopstools.notifications import send_critical_error_email
+
+
+logger = logging.getLogger("uvicorn.error")
+
+
+MAX_TIME_TO_ALERT: float = 60  # seconds before sending the alert
 
 
 @dataclass
@@ -31,10 +41,25 @@ class EmailSettings:
     password: str | None = None
 
 
-app = FastAPI(swagger_ui_parameters={"tagsSorter": "alpha"})
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handles the application life-cycle."""
+
+    await check_heartbeat()
+
+    yield
 
 
-def email_settings():
+app = FastAPI(swagger_ui_parameters={"tagsSorter": "alpha"}, lifespan=lifespan)
+app.state = State(
+    {
+        "active": False,
+        "last_seen": time.time(),
+    }
+)
+
+
+def get_email_settings():
     """Returns the email settings reading from environment variables."""
 
     recipients_envvar = os.getenv("LVMBEAT_EMAIL_RECIPIENTS", [])
@@ -71,11 +96,10 @@ def email_settings():
     )
 
 
-@app.get("/email/test", description="Sends a test email.")
-async def route_get_email_test(
-    email_settings: Annotated[EmailSettings, Depends(email_settings)],
-):
-    """Sends a test email."""
+def send_email(message: str, subject: str):
+    """Sends a critical alert email notification."""
+
+    email_settings = get_email_settings()
 
     if len(email_settings.recipients) == 0:
         raise HTTPException(status_code=400, detail="No recipients defined.")
@@ -92,8 +116,8 @@ async def route_get_email_test(
             raise HTTPException(status_code=400, detail="No password defined.")
 
     send_critical_error_email(
-        "This is a test message. Please ignore.",
-        subject="TEST: LCO internet is down",
+        message=message,
+        subject=subject,
         recipients=email_settings.recipients,
         from_address=email_settings.from_address,
         email_reply_to=email_settings.email_reply_to,
@@ -103,5 +127,48 @@ async def route_get_email_test(
         username=email_settings.username,
         password=email_settings.password,
     )
+
+
+@fastapi_utils.tasks.repeat_every(seconds=20, logger=logger, raise_exceptions=False)
+def check_heartbeat():
+    """Checks if we have received a heartbeat from LCO or sends an alert."""
+
+    logger.debug("Checking heartbeat.")
+
+    now = time.time()
+    if not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
+        logger.warning(
+            f"No heartbeat received in the last {MAX_TIME_TO_ALERT} seconds. "
+            "Sending critical alert email."
+        )
+        send_email(
+            message="The LCO internet connection is down.",
+            subject="LCO internet is down",
+        )
+        app.state.active = True
+
+    elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
+        logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
+        send_email(
+            message="The LCO internet connection appears to be up.",
+            subject="RESOLVED: LCO internet is up",
+        )
+        app.state.active = False
+
+
+@app.get("/heartbeat", description="Sets the heartbeat.")
+def route_get_heartbeat():
+    """Sets the heartbeat."""
+
+    app.state.last_seen = time.time()
+
+    return {"message": "Heartbeat received."}
+
+
+@app.get("/email/test", description="Sends a test email.")
+def route_get_email_test():
+    """Sends a test email."""
+
+    send_email("This is a test message. Please ignore.", "TEST: LCO internet is down")
 
     return {"message": "Email sent."}

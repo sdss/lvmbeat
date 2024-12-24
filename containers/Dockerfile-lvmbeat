@@ -5,6 +5,8 @@ LABEL org.opencontainers.image.source=https://github.com/sdss/lvmbeat
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y build-essential
+
 ENV UV_COMPILE_BYTECODE=1
 ENV ENV UV_LINK_MODE=copy
 
@@ -12,8 +14,9 @@ ENV ENV UV_LINK_MODE=copy
 ADD . /app
 
 # Sync the project
-RUN uv sync --frozen --no-cache --extra lco-monitor
+RUN uv sync --frozen --no-cache
 
-EXPOSE 80
+RUN apt-get remove -y build-essential
+RUN apt-get autoremove -y
 
-CMD ["/app/.venv/bin/fastapi", "run", "src/lvmbeat/monitor.py", "--port", "80", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/lvmbeat", "actor", "start", "--debug"]
