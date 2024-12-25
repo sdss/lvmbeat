@@ -54,6 +54,7 @@ app.state = State(
     {
         "active": False,
         "last_seen": time.time(),
+        "enabled": True,
     }
 )
 
@@ -134,6 +135,10 @@ def check_heartbeat():
 
     logger.debug("Checking heartbeat.")
 
+    if not app.state.enabled:
+        logger.debug("Heartbeat monitor is disabled.")
+        return
+
     max_time_to_alert: float = float(
         os.getenv(
             "LVMBEAT_SEND_EMAIL_AFTER",
@@ -169,6 +174,31 @@ def route_get_heartbeat():
     app.state.last_seen = time.time()
 
     return {"message": "Heartbeat received."}
+
+
+@app.get("/heartbeat/status", description="Status of the heartbeat monitor.")
+def route_get_heartbeat_status():
+    """Status of the heartbeat monitor."""
+
+    return {"status": app.state.enabled}
+
+
+@app.get("/heartbeat/enable", description="Enables the heartbeat monitor.")
+def route_get_heartbeat_enable():
+    """Enables the heartbeat monitor."""
+
+    app.state.enabled = True
+
+    return {"message": "Heartbeat monitor enabled."}
+
+
+@app.get("/heartbeat/disable", description="Disables the heartbeat monitor.")
+def route_get_heartbeat_disable():
+    """Disables the heartbeat monitor."""
+
+    app.state.enabled = False
+
+    return {"message": "Heartbeat monitor disabled."}
 
 
 @app.get("/email/test", description="Sends a test email.")
