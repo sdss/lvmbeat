@@ -20,6 +20,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.datastructures import State
 from lvmopstools.notifications import send_critical_error_email
 
+from lvmbeat import __version__
+
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -172,3 +174,10 @@ def route_get_email_test():
     send_email("This is a test message. Please ignore.", "TEST: LCO internet is down")
 
     return {"message": "Email sent."}
+
+
+@app.get("/version", description="Returns the version of the monitor.")
+def route_get_version():
+    """Returns the version of the monitor."""
+
+    return {"version": __version__}
