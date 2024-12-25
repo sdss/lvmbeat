@@ -180,7 +180,11 @@ def route_get_heartbeat():
 def route_get_heartbeat_status():
     """Status of the heartbeat monitor."""
 
-    return {"status": app.state.enabled}
+    return {
+        "status": app.state.enabled,
+        "active": app.state.active,
+        "last_seen": app.state.last_seen,
+    }
 
 
 @app.get("/heartbeat/enable", description="Enables the heartbeat monitor.")
