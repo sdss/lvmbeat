@@ -1,4 +1,4 @@
-name: Build monitor app container
+name: Build actor container
 
 on:
   push:
