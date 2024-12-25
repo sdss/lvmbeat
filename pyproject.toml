@@ -12,8 +12,8 @@ dependencies = [
     "lvmopstools[slack]>=0.5.2",
     "pydantic>=2.10.4",
     "python3-nmap>=1.9.1",
-    "sdss-clu>=2.4.2",
-    "sdsstools>=1.9.0",
+    "sdss-clu>=2.4.3",
+    "sdsstools>=1.9.1",
 ]
 
 [project.optional-dependencies]
