@@ -160,7 +160,7 @@ class BeatActor(AMQPActor):
             return
 
         while True:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
                 try:
                     response = await client.get(outside_url)
                     response.raise_for_status()
