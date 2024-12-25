@@ -22,6 +22,7 @@ from clu.command import Command
 from clu.parsers.click import command_parser
 from sdsstools import cancel_task
 
+from lvmbeat import config
 from lvmbeat.heartbeats import HeartbeatData, Heartbeats
 from lvmbeat.tools import is_host_up, timestamp_to_iso
 
@@ -150,7 +151,7 @@ class BeatActor(AMQPActor):
     async def emit_outside(self):
         """Emits a heartbeat to the outside world."""
 
-        outside_url = self.config.get("outside_monitor_url")
+        outside_url = config["outside_monitor"]["url"]
         if not outside_url:
             self.log.warning(
                 "No outside monitor URL defined. Will not emit "

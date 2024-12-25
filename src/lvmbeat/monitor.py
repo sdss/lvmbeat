@@ -20,13 +20,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.datastructures import State
 from lvmopstools.notifications import send_critical_error_email
 
-from lvmbeat import __version__
+from lvmbeat import __version__, config
 
 
 logger = logging.getLogger("uvicorn.error")
-
-
-MAX_TIME_TO_ALERT: float = 60  # seconds before sending the alert
 
 
 @dataclass
@@ -137,10 +134,17 @@ def check_heartbeat():
 
     logger.debug("Checking heartbeat.")
 
+    max_time_to_alert: float = float(
+        os.getenv(
+            "LVMBEAT_SEND_EMAIL_AFTER",
+            config["outside_monitor.send_email_after"],
+        )
+    )
+
     now = time.time()
-    if not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
+    if not app.state.active and now - app.state.last_seen > max_time_to_alert:
         logger.warning(
-            f"No heartbeat received in the last {MAX_TIME_TO_ALERT} seconds. "
+            f"No heartbeat received in the last {max_time_to_alert} seconds. "
             "Sending critical alert email."
         )
         send_email(
@@ -149,7 +153,7 @@ def check_heartbeat():
         )
         app.state.active = True
 
-    elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
+    elif app.state.active and now - app.state.last_seen < max_time_to_alert:
         logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
         send_email(
             message="The LCO internet connection appears to be up.",

@@ -65,6 +65,7 @@ async def actor(ctx, with_simulator: bool = False):
         print("Using internal configuration.")
 
     actor_obj = BeatActor.from_config(beat_config)
+    config.update(beat_config)
 
     await actor_obj.start()
     await actor_obj.run_forever()

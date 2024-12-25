@@ -4,7 +4,9 @@ actor:
   port: 5672
   log_dir: /data/logs/lvmbeat
 
-outside_monitor_url: null
+outside_monitor:
+  url: null
+  send_email_after: 300
 
 heartbeats:
   - name: overwatcher
