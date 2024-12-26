@@ -48,7 +48,7 @@ The `outside_monitor` section defines the outside URL that the actor will call e
 
 ### Status command
 
-```json
+```console
 lvmbeat status
 16:32:29.736 lvmbeat : {
     "heartbeats": {
