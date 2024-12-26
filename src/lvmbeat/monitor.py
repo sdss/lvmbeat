@@ -21,6 +21,7 @@ from fastapi.datastructures import State
 from lvmopstools.notifications import send_critical_error_email
 
 from lvmbeat import __version__, config
+from lvmbeat.tools import timestamp_to_iso
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -193,10 +194,12 @@ def route_get_heartbeat():
 def route_get_heartbeat_status():
     """Status of the heartbeat monitor."""
 
+    state = app.state
+
     return {
-        "enabled": app.state.enabled,
-        "active": app.state.active,
-        "last_seen": app.state.last_seen,
+        "enabled": state.enabled,
+        "active": state.active,
+        "last_seen": timestamp_to_iso(state.last_seen) if state.last_seen else None,
     }
 
 
