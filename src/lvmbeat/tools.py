@@ -18,13 +18,17 @@ from sdsstools.utils import run_in_executor
 __all__ = ["timestamp_to_iso", "is_host_up"]
 
 
-def timestamp_to_iso(ts: float | None) -> str | None:
+def timestamp_to_iso(ts: float | None, timespec: str = "seconds") -> str | None:
     """Converts a timestamp to an ISO string."""
 
     if ts is None:
         return None
 
-    return datetime.fromtimestamp(ts, timezone.utc).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.fromtimestamp(ts, timezone.utc)
+        .isoformat(timespec=timespec)
+        .replace("+00:00", "Z")
+    )
 
 
 async def is_host_up(host: str) -> bool:
