@@ -175,7 +175,8 @@ def send_internet_down_email():
         "Sending critical alert email."
     )
     send_email(
-        message="The LCO internet connection is down.",
+        message="The LCO internet connection is down. Last connection with "
+        f"the server was at {timestamp_to_iso(app.state.last_seen) or '<null>'}.",
         subject="LCO internet is down",
     )
     app.state.active = True
