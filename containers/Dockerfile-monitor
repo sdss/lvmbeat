@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source=https://github.com/sdss/lvmbeat
 WORKDIR /app
 
 ENV UV_COMPILE_BYTECODE=1
-ENV ENV UV_LINK_MODE=copy
+ENV UV_LINK_MODE=copy
 
 # Copy the project into the image
 ADD . /app

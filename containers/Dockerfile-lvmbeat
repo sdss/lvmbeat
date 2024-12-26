@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential
 
 ENV UV_COMPILE_BYTECODE=1
-ENV ENV UV_LINK_MODE=copy
+ENV UV_LINK_MODE=copy
 
 # Copy the project into the image
 ADD . /app
