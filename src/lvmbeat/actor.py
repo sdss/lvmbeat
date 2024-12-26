@@ -159,6 +159,8 @@ class BeatActor(AMQPActor):
             )
             return
 
+        interval = self.config.get("outside_monitor", {}).get("interval", 15)
+
         while True:
             async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
                 try:
@@ -170,7 +172,7 @@ class BeatActor(AMQPActor):
                     self.log.debug(f"Emitted heartbeat to {outside_url!r}.")
                     self._last_emitted_outside = time()
 
-            await asyncio.sleep(15)
+            await asyncio.sleep(interval)
 
     async def update_network_status(self):
         """Updates the network status."""
