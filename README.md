@@ -44,7 +44,7 @@ heartbeats:
 
 To add a new heartbeat, simply add it to the `heartbeats` section and then have the client responsible for it send `lvmbeat set <heartbeat_name>` every few seconds (but more frequently than `timeout`).
 
-The `outside_monitor` section defines the outside URL that the actor will call every `outside_monitor.interval`. `send_email_after` indicates how long the external monitor service will wait after it has not received a heartbeat to send an alert email.
+The `outside_monitor` section defines the outside URL that the actor will call every `outside_monitor.interval`. `send_email_after` indicates how long the external monitor service will wait after it has not received a heartbeat to send an alert email. The `url` value must be replaced with the URL of the external monitor service. The URL can also be defined by setting the environment variable `LVMBEAT_OUTSIDE_MONITOR_URL`.
 
 ### Status command
 

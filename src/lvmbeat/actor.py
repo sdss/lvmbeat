@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from time import time
 
 from typing import Annotated, TypedDict
@@ -151,7 +152,11 @@ class BeatActor(AMQPActor):
     async def emit_outside(self):
         """Emits a heartbeat to the outside world."""
 
-        outside_url = config["outside_monitor"]["url"]
+        outside_url = os.getenv(
+            "LVMBEAT_OUTSIDE_MONITOR_URL",
+            config["outside_monitor"]["url"],
+        )
+
         if not outside_url:
             self.log.warning(
                 "No outside monitor URL defined. Will not emit "
