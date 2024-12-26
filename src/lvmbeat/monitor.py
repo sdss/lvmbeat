@@ -53,7 +53,7 @@ app = FastAPI(swagger_ui_parameters={"tagsSorter": "alpha"}, lifespan=lifespan)
 app.state = State(
     {
         "active": False,
-        "last_seen": time.time(),
+        "last_seen": None,
         "enabled": True,
     }
 )
@@ -147,7 +147,8 @@ def check_heartbeat():
     )
 
     now = time.time()
-    if not app.state.active and now - app.state.last_seen > max_time_to_alert:
+    last_seen = app.state.last_seen
+    if not app.state.active and (not last_seen or now - last_seen > max_time_to_alert):
         logger.warning(
             f"No heartbeat received in the last {max_time_to_alert} seconds. "
             "Sending critical alert email."
@@ -158,7 +159,7 @@ def check_heartbeat():
         )
         app.state.active = True
 
-    elif app.state.active and now - app.state.last_seen < max_time_to_alert:
+    elif app.state.active and last_seen and now - last_seen < max_time_to_alert:
         logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
         send_email(
             message="The LCO internet connection appears to be up.",
@@ -176,7 +177,7 @@ def route_get_heartbeat():
     return {"message": "Heartbeat received."}
 
 
-@app.get("/heartbeat/status", description="Status of the heartbeat monitor.")
+@app.get("/status", description="Status of the heartbeat monitor.")
 def route_get_heartbeat_status():
     """Status of the heartbeat monitor."""
 
@@ -187,7 +188,7 @@ def route_get_heartbeat_status():
     }
 
 
-@app.get("/heartbeat/enable", description="Enables the heartbeat monitor.")
+@app.get("/enable", description="Enables the heartbeat monitor.")
 def route_get_heartbeat_enable():
     """Enables the heartbeat monitor."""
 
@@ -196,7 +197,7 @@ def route_get_heartbeat_enable():
     return {"message": "Heartbeat monitor enabled."}
 
 
-@app.get("/heartbeat/disable", description="Disables the heartbeat monitor.")
+@app.get("/disable", description="Disables the heartbeat monitor.")
 def route_get_heartbeat_disable():
     """Disables the heartbeat monitor."""
 
@@ -205,7 +206,7 @@ def route_get_heartbeat_disable():
     return {"message": "Heartbeat monitor disabled."}
 
 
-@app.get("/email/test", description="Sends a test email.")
+@app.get("/email-test", description="Sends a test email.")
 def route_get_email_test():
     """Sends a test email."""
 
