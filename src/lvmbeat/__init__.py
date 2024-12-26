@@ -14,7 +14,7 @@ from sdsstools import get_config, get_package_version
 
 
 # pip package name
-NAME = "sdss-lvmecp"
+NAME = "lvmbeat"
 
 # Loads config. config name is the package name.
 config = get_config(
