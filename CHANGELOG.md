@@ -1,5 +1,12 @@
 # Changelog
 
+## Next version
+
+### ✨ Improved
+
+* Ensure that the monitor tool URL includes the `/heartbeat` route.
+
+
 ## 0.1.1 - December 26, 2024
 
 ### ✨ Improved

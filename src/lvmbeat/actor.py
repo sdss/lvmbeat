@@ -164,6 +164,9 @@ class BeatActor(AMQPActor):
             )
             return
 
+        if "/heartbeat" not in outside_url:
+            outside_url = outside_url.rstrip("/") + "/heartbeat"
+
         interval = self.config.get("outside_monitor", {}).get("interval", 15)
 
         while True:
