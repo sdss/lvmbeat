@@ -25,6 +25,13 @@ from lvmbeat import __version__, config
 
 logger = logging.getLogger("uvicorn.error")
 
+MAX_TIME_TO_ALERT: float = float(
+    os.getenv(
+        "LVMBEAT_SEND_EMAIL_AFTER",
+        config["outside_monitor.send_email_after"],
+    )
+)
+
 
 @dataclass
 class EmailSettings:
@@ -55,6 +62,7 @@ app.state = State(
         "active": False,
         "last_seen": None,
         "enabled": True,
+        "started_at": time.time(),
     }
 )
 
@@ -129,7 +137,7 @@ def send_email(message: str, subject: str):
     )
 
 
-@fastapi_utils.tasks.repeat_every(seconds=20, logger=logger, raise_exceptions=False)
+@fastapi_utils.tasks.repeat_every(seconds=10, logger=logger, raise_exceptions=False)
 def check_heartbeat():
     """Checks if we have received a heartbeat from LCO or sends an alert."""
 
@@ -139,33 +147,37 @@ def check_heartbeat():
         logger.debug("Heartbeat monitor is disabled.")
         return
 
-    max_time_to_alert: float = float(
-        os.getenv(
-            "LVMBEAT_SEND_EMAIL_AFTER",
-            config["outside_monitor.send_email_after"],
-        )
-    )
-
     now = time.time()
-    last_seen = app.state.last_seen
-    if not app.state.active and (not last_seen or now - last_seen > max_time_to_alert):
-        logger.warning(
-            f"No heartbeat received in the last {max_time_to_alert} seconds. "
-            "Sending critical alert email."
-        )
-        send_email(
-            message="The LCO internet connection is down.",
-            subject="LCO internet is down",
-        )
-        app.state.active = True
 
-    elif app.state.active and last_seen and now - last_seen < max_time_to_alert:
+    if not app.state.last_seen:
+        # Wait max_time_to_alert before sending the first alert.
+        if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
+            send_internet_down_email()
+
+    elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
+        send_internet_down_email()
+
+    elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
         logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
         send_email(
             message="The LCO internet connection appears to be up.",
             subject="RESOLVED: LCO internet is up",
         )
         app.state.active = False
+
+
+def send_internet_down_email():
+    """Sends an email alerting that the internet is down."""
+
+    logger.warning(
+        f"No heartbeat received in the last {MAX_TIME_TO_ALERT} seconds. "
+        "Sending critical alert email."
+    )
+    send_email(
+        message="The LCO internet connection is down.",
+        subject="LCO internet is down",
+    )
+    app.state.active = True
 
 
 @app.get("/heartbeat", description="Sets the heartbeat.")
