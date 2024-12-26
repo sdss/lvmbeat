@@ -6,6 +6,10 @@
 
 * Ensure that the monitor tool URL includes the `/heartbeat` route.
 
+### 🔧 Fix
+
+* Update when the last heartbeat was sent to the ECP.
+
 
 ## 0.1.1 - December 26, 2024
 

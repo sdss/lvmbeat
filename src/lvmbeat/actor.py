@@ -148,6 +148,8 @@ class BeatActor(AMQPActor):
                 "Possible error emitting dome heartbeat. "
                 "The lcmecp heartbeat command failed."
             )
+        else:
+            self._last_emitted_ecp = time()
 
     async def emit_outside(self):
         """Emits a heartbeat to the outside world."""
