@@ -1,0 +1,5 @@
+docs/
+tests/
+.venv
+.pytest_cache
+htmlcov
