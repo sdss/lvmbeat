@@ -205,4 +205,4 @@ az containerapp revision restart -n lco-monitor -g <resource-group> --revision <
 
 More details on how to manage revisions can be found [here](https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage).
 
-It seems that the ingress URL remains constant for the same container app name, but that may not always be the case. After each re-deployment, make sure that the `lvmbeat` actor at LCO is calling the correct URL.
+The ingress URL remains constant only as long as the revision does not change, which means that in most cases when something is actually changed in the deployment, the URL will change.
