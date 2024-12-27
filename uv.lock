@@ -535,7 +535,7 @@ wheels = [
 
 [[package]]
 name = "lvmbeat"
-version = "0.1.2"
+version = "0.1.3a0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
