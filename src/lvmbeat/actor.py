@@ -12,7 +12,7 @@ import asyncio
 import os
 from time import time
 
-from typing import Annotated
+from typing import Annotated, Any
 
 import click
 import httpx
@@ -61,7 +61,7 @@ class BeatKeywordSchema(BaseModel):
         ),
     ]
     network: Annotated[
-        dict[str, Trigger],
+        dict[str, Any],
         Field(description="Network status."),
     ]
 
