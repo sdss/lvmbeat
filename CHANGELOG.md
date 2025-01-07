@@ -1,10 +1,14 @@
 # Changelog
 
-## Next version
+## 0.2.0 - January 7, 2025
 
 ### 🚀 New
 
 * Do not emit heartbeat to ECP if the network (LCO or internet) is down.
+
+### 🔧 Fixed
+
+* Add `nmap` to the lvmbeat actor container.
 
 
 ## 0.1.2 - December 27, 2024
