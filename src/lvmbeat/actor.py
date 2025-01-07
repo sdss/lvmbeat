@@ -234,8 +234,8 @@ async def status(command: BeatCommand):
         last_emitted_ecp=last_emitted_ecp,
         last_emitted_outside=last_emitted_outside,
         network={
-            "internet": command.actor.network_status["outside"].is_set(),
-            "lco": command.actor.network_status["lco"].is_set(),
+            "internet": not command.actor.network_status["outside"].is_set(),
+            "lco": not command.actor.network_status["lco"].is_set(),
         },
     )
 
