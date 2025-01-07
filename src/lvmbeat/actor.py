@@ -12,7 +12,7 @@ import asyncio
 import os
 from time import time
 
-from typing import Annotated, Any
+from typing import Annotated
 
 import click
 import httpx
@@ -61,7 +61,7 @@ class BeatKeywordSchema(BaseModel):
         ),
     ]
     network: Annotated[
-        dict[str, Any],
+        dict[str, bool],
         Field(description="Network status."),
     ]
 
@@ -233,7 +233,10 @@ async def status(command: BeatCommand):
         heartbeats=heartbeats,
         last_emitted_ecp=last_emitted_ecp,
         last_emitted_outside=last_emitted_outside,
-        network=command.actor.network_status,
+        network={
+            "internet": command.actor.network_status["outside"].is_set(),
+            "lco": command.actor.network_status["lco"].is_set(),
+        },
     )
 
 
