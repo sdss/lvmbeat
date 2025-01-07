@@ -61,7 +61,7 @@ class BeatKeywordSchema(BaseModel):
         ),
     ]
     network: Annotated[
-        NetworkStatus,
+        dict[str, Trigger],
         Field(description="Network status."),
     ]
 
