@@ -1,5 +1,12 @@
 # Changelog
 
+## Next version
+
+### 🚀 New
+
+* Do not emit heartbeat to ECP if the network (LCO or internet) is down.
+
+
 ## 0.1.2 - December 27, 2024
 
 ### ✨ Improved

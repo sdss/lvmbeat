@@ -12,10 +12,11 @@ import asyncio
 import os
 from time import time
 
-from typing import Annotated, TypedDict
+from typing import Annotated
 
 import click
 import httpx
+from lvmopstools.utils import Trigger
 from pydantic import BaseModel, Field
 
 from clu.actor import AMQPActor
@@ -65,13 +66,6 @@ class BeatKeywordSchema(BaseModel):
     ]
 
 
-class NetworkStatus(TypedDict):
-    """Network status."""
-
-    lco: bool
-    outside: bool
-
-
 class BeatActor(AMQPActor):
     """Heartbeat actor."""
 
@@ -98,9 +92,9 @@ class BeatActor(AMQPActor):
         self._last_emitted_outside: float | None = None
 
         # Track network access to other LCO services and the outside world.
-        self.network_status: NetworkStatus = {
-            "lco": True,
-            "outside": True,
+        self.network_status: dict[str, Trigger] = {
+            "lco": Trigger(n=3),
+            "outside": Trigger(n=3),
         }
 
         self._emit_outside_task = asyncio.create_task(self.emit_outside())
@@ -136,6 +130,13 @@ class BeatActor(AMQPActor):
                         f"in the last {self.timeout} seconds. "
                         "Skipping since it is not critical."
                     )
+
+        for label, trigger in self.network_status.items():
+            if trigger.is_set():
+                self.log.warning(
+                    f"Network to {label!r} is down. Not emitting heartbeat to ECP."
+                )
+                return
 
         if self._last_emitted_ecp and time() - self._last_emitted_ecp < 10:
             # Prevent emitting the heartbeat too often.
@@ -193,8 +194,18 @@ class BeatActor(AMQPActor):
             internet = await is_host_up("8.8.8.8")  # Google DNS
             lco = await is_host_up("10.8.8.46")  # clima.lco.cl
 
-            self.network_status["outside"] = internet
-            self.network_status["lco"] = lco
+            # Network statuses are triggers. We require the connection to fail
+            # three consecutive times before we consider the network down.
+
+            if internet:
+                self.network_status["outside"].reset()
+            else:
+                self.network_status["outside"].set()
+
+            if lco:
+                self.network_status["lco"].reset()
+            else:
+                self.network_status["lco"].set()
 
             await asyncio.sleep(15)
 
