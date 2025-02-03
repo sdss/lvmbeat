@@ -1,6 +1,6 @@
 [project]
 name = "lvmbeat"
-version = "0.2.1"
+version = "0.2.2a0"
 description = "LVM heartbeat monitor"
 readme = "README.md"
 authors = [
