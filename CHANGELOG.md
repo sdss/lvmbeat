@@ -1,5 +1,12 @@
 # Changelog
 
+## Next version
+
+### 🚀 New
+
+* Notify `lvm-alerts` in Slack when the network is up/down.
+
+
 ## 0.2.0 - January 7, 2025
 
 ### 🚀 New

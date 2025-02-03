@@ -18,7 +18,7 @@ import fastapi_utils
 import fastapi_utils.tasks
 from fastapi import FastAPI, HTTPException
 from fastapi.datastructures import State
-from lvmopstools.notifications import send_critical_error_email
+from lvmopstools.notifications import post_to_slack, send_critical_error_email
 
 from lvmbeat import __version__, config
 from lvmbeat.tools import timestamp_to_iso
@@ -139,7 +139,7 @@ def send_email(message: str, subject: str):
 
 
 @fastapi_utils.tasks.repeat_every(seconds=10, logger=logger, raise_exceptions=True)
-def check_heartbeat():
+async def check_heartbeat():
     """Checks if we have received a heartbeat from LCO or sends an alert."""
 
     logger.debug("Checking heartbeat.")
@@ -153,10 +153,10 @@ def check_heartbeat():
     if not app.state.last_seen:
         # Wait max_time_to_alert before sending the first alert.
         if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
-            send_internet_down_email()
+            await send_internet_down_email()
 
     elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
-        send_internet_down_email()
+        await send_internet_down_email()
 
     elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
         logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
@@ -164,10 +164,14 @@ def check_heartbeat():
             message="The LCO internet connection appears to be up.",
             subject="RESOLVED: LCO internet is up",
         )
+        await post_to_slack(
+            "RESOLVED: the LCO internet connection appears to be up.",
+            channel="lvm-alerts",
+        )
         app.state.active = False
 
 
-def send_internet_down_email():
+async def send_internet_down_email():
     """Sends an email alerting that the internet is down."""
 
     logger.warning(
@@ -179,6 +183,12 @@ def send_internet_down_email():
         f"the server was at {timestamp_to_iso(app.state.last_seen) or '<null>'}.",
         subject="LCO internet is down",
     )
+    await post_to_slack(
+        "The LCO internet connection appears to be down.",
+        channel="lvm-alerts",
+        mentions=["@here"],
+    )
+
     app.state.active = True
 
 
@@ -222,13 +232,26 @@ def route_get_heartbeat_disable():
     return {"message": "Heartbeat monitor disabled."}
 
 
-@app.get("/email-test", description="Sends a test email.")
+@app.get("/test/email", description="Sends a test email.")
 def route_get_email_test():
     """Sends a test email."""
 
     send_email("This is a test message. Please ignore.", "TEST: LCO internet is down")
 
     return {"message": "Email sent."}
+
+
+@app.get("/test/slack", description="Sends a test Slack notification.")
+async def route_get_slack_test():
+    """Sends a test Slack notification."""
+
+    await post_to_slack(
+        "This is a test message from the lvmbeat monitor. Please ignore.",
+        channel="lvm-alerts",
+        mentions=["@here"],
+    )
+
+    return {"message": "Slack notification sent."}
 
 
 @app.get("/version", description="Returns the version of the monitor.")
