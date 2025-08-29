@@ -13,7 +13,7 @@ The dome PLC includes a heartbeat feature. If a certain Modbus variable has not 
 
 ![lvmbeat architecture](docs/lvmbeat_diagram.png)
 
-Note that the `lvmbeat` actor does *not* have a loop that emits the heartbeat to the ECP on a loop. Heartbeats are emitted when the `lvmbeat` actor receaves a `set` command from one of the clients. A cutoff time is in place to avoid sending commands to `lvmecp` too frequently.
+Note that the `lvmbeat` actor does *not* have a loop that emits the heartbeat to the ECP on a loop. Heartbeats are emitted when the `lvmbeat` actor receives a `set` command from one of the clients. A cut-off time is in place to avoid sending commands to `lvmecp` too frequently.
 
 In addition to this, `lvmbeat` regularly calls an API route outside LCO to indicate that it is alive and that the connection from the observatory to the internet is working.
 

@@ -160,6 +160,7 @@ async def check_heartbeat():
 
     elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
         logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
+        app.state.active = False
         send_email(
             message="The LCO internet connection appears to be up.",
             subject="RESOLVED: LCO internet is up",
@@ -168,28 +169,29 @@ async def check_heartbeat():
             "RESOLVED: the LCO internet connection appears to be up.",
             channel="lvm-alerts",
         )
-        app.state.active = False
 
 
 async def send_internet_down_email():
     """Sends an email alerting that the internet is down."""
 
+    app.state.active = True
+
     logger.warning(
         f"No heartbeat received in the last {MAX_TIME_TO_ALERT} seconds. "
         "Sending critical alert email."
     )
+
     send_email(
         message="The LCO internet connection is down. Last connection with "
         f"the server was at {timestamp_to_iso(app.state.last_seen) or '<null>'}.",
         subject="LCO internet is down",
     )
+
     await post_to_slack(
         "The LCO internet connection appears to be down.",
         channel="lvm-alerts",
         mentions=["@here"],
     )
-
-    app.state.active = True
 
 
 @app.get("/heartbeat", description="Sets the heartbeat.")
