@@ -138,7 +138,7 @@ def send_email(message: str, subject: str):
     )
 
 
-@fastapi_utils.tasks.repeat_every(seconds=10, logger=logger, raise_exceptions=True)
+@fastapi_utils.tasks.repeat_every(seconds=30, logger=logger, raise_exceptions=False)
 async def check_heartbeat():
     """Checks if we have received a heartbeat from LCO or sends an alert."""
 
