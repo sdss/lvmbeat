@@ -1,5 +1,12 @@
 # Changelog
 
+## Next release
+
+### ✨ Improved
+
+* Control how often `check_heartbeat()` is called with the `outside_monitor.check_heartbeat_every` configuration option.
+
+
 ## 0.2.1 - February 3, 2025
 
 ### 🚀 New

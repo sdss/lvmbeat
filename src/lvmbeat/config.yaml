@@ -10,6 +10,7 @@ outside_monitor:
   url: null
   interval: 15
   send_email_after: 300
+  check_heartbeat_every: 120
 
 heartbeats:
   - name: overwatcher
