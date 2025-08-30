@@ -5,6 +5,11 @@
 ### ✨ Improved
 
 * Control how often `check_heartbeat()` is called with the `outside_monitor.check_heartbeat_every` configuration option.
+* Do not raise exceptions in `check_heartbeat()`.
+
+### 🔧 Fixed
+
+* Ensure that the state is set before trying to send emails or Slacks.
 
 
 ## 0.2.1 - February 3, 2025
