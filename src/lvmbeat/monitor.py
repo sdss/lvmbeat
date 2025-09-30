@@ -186,7 +186,7 @@ async def send_internet_down_email():
     )
 
     send_email(
-        message="The LCO internet connection is down. Last connection with "
+        message="The LCO internet connection is down. The last connection with "
         f"the server was at {timestamp_to_iso(app.state.last_seen) or '<null>'}.",
         subject="LCO internet is down",
     )
