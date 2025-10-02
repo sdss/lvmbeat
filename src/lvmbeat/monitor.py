@@ -52,6 +52,10 @@ class EmailSettings:
 async def lifespan(app: FastAPI):
     """Handles the application life-cycle."""
 
+    if os.getenv("LVMBEAT_DEBUG", "0") == "1":
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Debug mode enabled.")
+
     app.state = State(
         {
             "active": False,
