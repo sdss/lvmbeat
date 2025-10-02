@@ -52,20 +52,46 @@ class EmailSettings:
 async def lifespan(app: FastAPI):
     """Handles the application life-cycle."""
 
+    app.state = State(
+        {
+            "active": False,
+            "last_seen": None,
+            "enabled": True,
+            "started_at": time.time(),
+            "state_file": os.getenv("LVMBEAT_STATE_FILE", None),
+        }
+    )
+
+    if app.state.state_file:
+        logger.info(f"Using state file {app.state.state_file}.")
+
+        if os.path.exists(app.state.state_file):
+            try:
+                with open(app.state.state_file, "r") as f:
+                    data = f.read().strip()
+
+                if not data:
+                    raise ValueError("State file is empty.")
+
+                active = bool(int(data.split(",")[0]))
+                last_seen = data.split(",")[1]
+
+                logger.info(f"Restoring state. active={active}, last_seen={last_seen}.")
+                app.state.last_seen = last_seen
+                app.state.active = active
+            except Exception as e:
+                logger.error(f"Could not read state file: {e}")
+                logger.error("Removing corrupted state file.")
+
+                if os.path.exists(app.state.state_file):
+                    os.remove(app.state.state_file)
+
     await check_heartbeat()
 
     yield
 
 
 app = FastAPI(swagger_ui_parameters={"tagsSorter": "alpha"}, lifespan=lifespan)
-app.state = State(
-    {
-        "active": False,
-        "last_seen": None,
-        "enabled": True,
-        "started_at": time.time(),
-    }
-)
 
 
 def get_email_settings():
@@ -174,6 +200,8 @@ async def check_heartbeat():
             channel="lvm-alerts",
         )
 
+    update_state_file(app.state)
+
 
 async def send_internet_down_email():
     """Sends an email alerting that the internet is down."""
@@ -196,6 +224,20 @@ async def send_internet_down_email():
         channel="lvm-alerts",
         mentions=["@here"],
     )
+
+
+def update_state_file(state: State):
+    """Updates the state file with the current state."""
+
+    if not state.state_file:
+        return
+
+    try:
+        with open(state.state_file, "w") as f:
+            f.write(f"{int(state.active)},{state.last_seen or ''}")
+        logger.debug(f"Wrote state file {state.state_file}.")
+    except Exception as e:
+        logger.error(f"Could not write state file: {e}")
 
 
 @app.get("/heartbeat", description="Sets the heartbeat.")
