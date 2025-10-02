@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
                 last_seen = data.split(",")[1]
 
                 logger.info(f"Restoring state. active={active}, last_seen={last_seen}.")
-                app.state.last_seen = last_seen
+                app.state.last_seen = last_seen if last_seen else None
                 app.state.active = active
             except Exception as e:
                 logger.error(f"Could not read state file: {e}")
