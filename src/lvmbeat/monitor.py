@@ -14,9 +14,11 @@ import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 
+from typing import Annotated, Literal
+
 import fastapi_utils
 import fastapi_utils.tasks
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path, Query
 from fastapi.datastructures import State
 from lvmopstools.notifications import post_to_slack, send_critical_error_email
 
@@ -191,27 +193,18 @@ async def check_heartbeat():
     if not app.state.last_seen:
         # Wait max_time_to_alert before sending the first alert.
         if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
-            await send_internet_down_email()
+            await send_internet_down_notification()
 
     elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
-        await send_internet_down_email()
+        await send_internet_down_notification()
 
     elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
-        logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
-        app.state.active = False
-        send_email(
-            message="The LCO internet connection appears to be up.",
-            subject="RESOLVED: LCO internet is up",
-        )
-        await post_to_slack(
-            "RESOLVED: the LCO internet connection appears to be up.",
-            channel="lvm-alerts",
-        )
+        await send_internet_up_notification()
 
     update_state_file(app.state)
 
 
-async def send_internet_down_email():
+async def send_internet_down_notification():
     """Sends an email alerting that the internet is down."""
 
     app.state.active = True
@@ -231,6 +224,24 @@ async def send_internet_down_email():
         "The LCO internet connection appears to be down.",
         channel="lvm-alerts",
         mentions=["@here"],
+    )
+
+
+async def send_internet_up_notification():
+    """Sends an email alerting that the internet is up again."""
+
+    logger.info("Heartbeat received. Resetting alert and sending all-clear email.")
+
+    app.state.active = False
+
+    send_email(
+        message="The LCO internet connection appears to be up.",
+        subject="RESOLVED: LCO internet is up",
+    )
+
+    await post_to_slack(
+        "RESOLVED: the LCO internet connection appears to be up.",
+        channel="lvm-alerts",
     )
 
 
@@ -267,6 +278,51 @@ def route_get_heartbeat_status():
         "enabled": state.enabled,
         "active": state.active,
         "last_seen": timestamp_to_iso(state.last_seen) if state.last_seen else None,
+    }
+
+
+@app.get(
+    "/notify/{notification_type}",
+    description="Sends a notification about the heartbeat.",
+)
+async def route_get_send_notification(
+    notification_type: Annotated[
+        Literal["up", "down"],
+        Path(description="The type of notification to send."),
+    ],
+    force: Annotated[
+        bool,
+        Query(
+            description="Whether to force sending the notification "
+            "even if the state has not changed."
+        ),
+    ] = False,
+):
+    """Sends a notification about the heartbeat."""
+
+    state = app.state
+
+    if not force and (
+        (notification_type == "down" and state.active)
+        or (notification_type == "up" and not state.active)
+    ):
+        return {
+            "enabled": state.enabled,
+            "active": state.active,
+            "message": "State has not changed. No notification sent.",
+        }
+
+    if notification_type == "down":
+        await send_internet_down_notification()
+    else:
+        await send_internet_up_notification()
+
+    await update_state_file(state)
+
+    return {
+        "enabled": state.enabled,
+        "active": state.active,
+        "message": "Notification sent.",
     }
 
 

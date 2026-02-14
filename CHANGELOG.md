@@ -2,6 +2,10 @@
 
 ## Next release
 
+### 🚀 New
+
+* Added `/notify/<up|down>` to the monitor server to manually trigger notifications.
+
 ### ✨ Improved
 
 * Allow to specify `LVMBEAT_STATE_FILE` environment variable to make the monitor state persistent.
