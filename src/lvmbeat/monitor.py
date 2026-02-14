@@ -284,7 +284,7 @@ def update_state_file(state: State):
 
 
 @app.get("/heartbeat", description="Sets the heartbeat.")
-def route_get_heartbeat():
+async def route_get_heartbeat():
     """Sets the heartbeat."""
 
     app.state.last_seen = time.time()
