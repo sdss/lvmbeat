@@ -118,7 +118,8 @@ async def lifespan(app: FastAPI):
                 if os.path.exists(app.state.state_file):
                     os.remove(app.state.state_file)
 
-    await check_heartbeat()
+    if START_MONITOR:
+        await check_heartbeat()
 
     yield
 
@@ -196,36 +197,34 @@ def send_email(message: str, subject: str):
     )
 
 
-if START_MONITOR:
+@fastapi_utils.tasks.repeat_every(
+    seconds=config["outside_monitor.check_heartbeat_every"],
+    logger=logger,
+    raise_exceptions=False,
+)
+async def check_heartbeat():
+    """Checks if we have received a heartbeat from LCO or sends an alert."""
 
-    @fastapi_utils.tasks.repeat_every(
-        seconds=config["outside_monitor.check_heartbeat_every"],
-        logger=logger,
-        raise_exceptions=False,
-    )
-    async def check_heartbeat():
-        """Checks if we have received a heartbeat from LCO or sends an alert."""
+    logger.debug("Checking heartbeat.")
 
-        logger.debug("Checking heartbeat.")
+    if not app.state.enabled:
+        logger.debug("Heartbeat monitor is disabled.")
+        return
 
-        if not app.state.enabled:
-            logger.debug("Heartbeat monitor is disabled.")
-            return
+    now = time.time()
 
-        now = time.time()
-
-        if not app.state.last_seen:
-            # Wait max_time_to_alert before sending the first alert.
-            if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
-                await send_internet_down_notification()
-
-        elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
+    if not app.state.last_seen:
+        # Wait max_time_to_alert before sending the first alert.
+        if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
             await send_internet_down_notification()
 
-        elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
-            await send_internet_up_notification()
+    elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
+        await send_internet_down_notification()
 
-        update_state_file(app.state)
+    elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
+        await send_internet_up_notification()
+
+    update_state_file(app.state)
 
 
 async def send_internet_down_notification():
