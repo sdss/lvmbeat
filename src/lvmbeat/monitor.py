@@ -289,6 +289,9 @@ def route_get_heartbeat():
 
     app.state.last_seen = time.time()
 
+    if app.state.active:
+        await send_internet_up_notification()
+
     return {"message": "Heartbeat received."}
 
 
