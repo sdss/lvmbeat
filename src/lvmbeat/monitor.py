@@ -28,12 +28,34 @@ from lvmbeat.tools import timestamp_to_iso
 
 logger = logging.getLogger("uvicorn.error")
 
+
+def parse_bool_envvar(variable: str, default: bool = False) -> bool:
+    """Parses a boolean environment variable."""
+
+    value = os.getenv(variable, default)
+
+    if value is None:
+        return default
+
+    if isinstance(value, bool):
+        return value
+
+    if value.lower() in ["true", "yes", "1"]:
+        return True
+    elif value.lower() in ["false", "no", "0"]:
+        return False
+    else:
+        raise ValueError(f"Invalid boolean value: {value}")
+
+
 MAX_TIME_TO_ALERT: float = float(
     os.getenv(
         "LVMBEAT_SEND_EMAIL_AFTER",
         config["outside_monitor.send_email_after"],
     )
 )
+
+START_MONITOR: bool = parse_bool_envvar("LVMBEAT_START_MONITOR", True)
 
 
 @dataclass
@@ -174,34 +196,36 @@ def send_email(message: str, subject: str):
     )
 
 
-@fastapi_utils.tasks.repeat_every(
-    seconds=config["outside_monitor.check_heartbeat_every"],
-    logger=logger,
-    raise_exceptions=False,
-)
-async def check_heartbeat():
-    """Checks if we have received a heartbeat from LCO or sends an alert."""
+if START_MONITOR:
 
-    logger.debug("Checking heartbeat.")
+    @fastapi_utils.tasks.repeat_every(
+        seconds=config["outside_monitor.check_heartbeat_every"],
+        logger=logger,
+        raise_exceptions=False,
+    )
+    async def check_heartbeat():
+        """Checks if we have received a heartbeat from LCO or sends an alert."""
 
-    if not app.state.enabled:
-        logger.debug("Heartbeat monitor is disabled.")
-        return
+        logger.debug("Checking heartbeat.")
 
-    now = time.time()
+        if not app.state.enabled:
+            logger.debug("Heartbeat monitor is disabled.")
+            return
 
-    if not app.state.last_seen:
-        # Wait max_time_to_alert before sending the first alert.
-        if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
+        now = time.time()
+
+        if not app.state.last_seen:
+            # Wait max_time_to_alert before sending the first alert.
+            if not app.state.active and now - app.state.started_at >= MAX_TIME_TO_ALERT:
+                await send_internet_down_notification()
+
+        elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
             await send_internet_down_notification()
 
-    elif not app.state.active and now - app.state.last_seen > MAX_TIME_TO_ALERT:
-        await send_internet_down_notification()
+        elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
+            await send_internet_up_notification()
 
-    elif app.state.active and now - app.state.last_seen < MAX_TIME_TO_ALERT:
-        await send_internet_up_notification()
-
-    update_state_file(app.state)
+        update_state_file(app.state)
 
 
 async def send_internet_down_notification():

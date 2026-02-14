@@ -5,6 +5,7 @@
 ### 🚀 New
 
 * Added `/notify/<up|down>` to the monitor server to manually trigger notifications.
+* Allow not starting the monitor loop by setting `LVMBEAT_START_MONITOR=0`. In this case notifications need to be sent manually by calling the `/notify` route.
 
 ### ✨ Improved
 
