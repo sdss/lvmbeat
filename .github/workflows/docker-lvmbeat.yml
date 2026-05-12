@@ -38,9 +38,6 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
 
-      - name: Show tags
-        run: echo ${{ steps.meta.outputs.tags }}
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
