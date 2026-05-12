@@ -10,6 +10,7 @@
 ### ✨ Improved
 
 * Allow to specify `LVMBEAT_STATE_FILE` environment variable to make the monitor state persistent.
+* Update dependencies to address security vulnerabilities.
 
 
 ## 0.2.2 - August 29, 2025
